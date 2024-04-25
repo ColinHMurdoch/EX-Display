@@ -40,26 +40,47 @@ MCUFRIEND_kbv tft;
 
 #if defined(ARDUINO_AVR_MEGA2560)
      #define RX_PIN 0 // Define the RX pin for Serial1
-     #define SERIAL Serial
+     //#define SERIAL Serial
+     #undef CONSOLE
+     #undef CS_LISTEN
+     #define CONSOLE Serial
+     #define CS_LISTEN Serial
      //#define SERIAL Serial1
      //#define RX_PIN 19 // Define the RX pin for Serial1
 
      #elif defined(ARDUINO_AVR_UNO)
      #define RX_PIN 0
-     #define SERIAL Serial
+     //#define SERIAL Serial
+     #undef CONSOLE
+     #undef CS_LISTEN
+     #define CONSOLE Serial
+     #define CS_LISTEN Serial
+
      #elif defined(ESP32)
      #define RX_PIN 0
-     #define SERIAL Serial
+     //#define SERIAL Serial
+     #undef CONSOLE
+     #undef CS_LISTEN
+     #define CONSOLE Serial
+     #define CS_LISTEN Serial
 
     #elif defined(ARDUINO_NUCLEO_F411RE) 
     HardwareSerial Serial1(PB7, PA15);  // Rx=PB7, Tx=PA15 -- CN7 pins 17 and 21 - F411RE
-     #define SERIAL Serial1
+     //#define SERIAL Serial1
      #define RX_PIN PB7;
+     #undef CONSOLE
+     #undef CS_LISTEN
+     #define CONSOLE Serial
+     #define CS_LISTEN Serial1
 
      #elif defined(ARDUINO_NUCLEO_F446RE) 
      HardwareSerial Serial5(PD2, PC12);  // Rx=PD2, Tx=PC12 -- UART5 - F446RE
-     #define SERIAL Serial5
+     //#define SERIAL Serial5
      #define RX_PIN PD2;
+     #undef CONSOLE
+     #undef CS_LISTEN
+     #define CONSOLE Serial
+     #define CS_LISTEN Serial5
      
 #endif
 
@@ -69,7 +90,8 @@ int ScreenLines;
 
 
 void setup() {
-  SERIAL.begin(115200); // Start the serial communication
+  CONSOLE.begin(115200); // Start the serial communication
+  CS_LISTEN.begin(115200);
   //SERIAL1.begin(115200); // Start Serial1 for listening to messages
 
   DCCEXInbound::setup(10);
@@ -81,7 +103,7 @@ void setup() {
   //tft.invertDisplay(0);
 
 
-  SERIAL.println("End of Setup");
+  CONSOLE.println("End of Setup");
   delay(1000);
 
   timestamp = millis();
@@ -156,8 +178,8 @@ void processSerialInput() {
   char startMarker = '<';
   char endMarker = '>';
   char serialByte;
-  while (Serial.available() > 0 && newSerialData == false) {
-    serialByte = Serial.read();
+  while (CS_LISTEN.available() > 0 && newSerialData == false) {   // doesn't this need to listen to CONSOLE now also?
+    serialByte = CS_LISTEN.read();    // doesn't this need to listen to CONSOLE now also?
     if (serialInProgress == true) {
       if (serialByte != endMarker) {
         serialInputBytes[serialIndex++] = serialByte;
@@ -180,12 +202,12 @@ void processSerialInput() {
     }
   }
   if (newSerialData == true) {
-    Serial.println(F("Got serial command "));
+    CONSOLE.println(F("Got serial command "));
     for (uint8_t i = 0; i < maxBufferSize; i++) {
       if (serialInputBytes[i] == '\0') break;
-      Serial.print((char)serialInputBytes[i]);
+      CONSOLE.print((char)serialInputBytes[i]);
     }
-    Serial.println(F(""));
+    CONSOLE.println(F(""));
     newSerialData = false;
     parseData(serialInputBytes);
   } 
@@ -195,8 +217,8 @@ void TFT_Startup()
 {
 
     uint16_t ID = tft.readID();
-    SERIAL.print("TFT ID = 0x");
-    SERIAL.println(ID, HEX);
+    CONSOLE.print("TFT ID = 0x");
+    CONSOLE.println(ID, HEX);
     // #ifdef DEBUG
     // SERIAL.println("Calibrate for your Touch Panel");
     // #endif
@@ -254,7 +276,7 @@ void testprint(byte lines){
 
     #ifdef DEBUG
       printf(message, "Line : %d Pos %d", no, vpos);
-      SERIAL.println(message);
+      CONSOLE.println(message);
     #endif
 
     showmsgXY(1, vpos, 1, message);
@@ -310,12 +332,12 @@ void parseData(char * message){
 
 void StartScreenPrint() {
     
-    SERIAL.println("New Page");
+    CONSOLE.println("New Page");
     tft.fillScreen(BLACK);
 
     TFT_DrawHeader();
 
-    SERIAL.println("Drawn Header\n");
+    CONSOLE.println("Drawn Header\n");
     // force the redraw of the screen
     ScreenChanged[THIS_SCREEN_NUM]==true;
     PrintInProgress=true;
