@@ -99,8 +99,6 @@ void setup() {
   // Initialize the display
 
   TFT_Startup(); 
-  //tft.invertDisplay(1);
-  //tft.invertDisplay(0);
 
 
   CONSOLE.println("End of Setup");
@@ -225,6 +223,15 @@ void TFT_Startup()
     //if (ID == 0xD3D3) ID = 0x9486; // write-only shield
 
     tft.begin(ID);
+  
+    if (ARDUINO_NUCLEO_F446RE){
+        if(ID = 0x9488){
+          tft.invertDisplay(1);
+        }
+      else {
+        //tft.invertDisplay(0);
+      }
+    }
   
     tft.setRotation(1);           
     tft.setTextColor(0xFFFF); 
