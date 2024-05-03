@@ -1,20 +1,10 @@
-#ifndef EX_DISPLAY_h
-#define EX_DISPLAY_H
+#ifndef SCREEN_H
+#define SCREEN_H
 
-// EX-Display.h
+#include "config.h"
+//#include "Defines.h"
 
-#define DEBUG
-
-byte THIS_SCREEN_NUM = 0;
-
-#define FONT_SIZE 2.5 // Adjust font size as needed
-#define CHAR_WIDTH (6 * FONT_SIZE) // Width of a single character in pixels
-
-// Set this following string to the header you require.  This is displayed at the top of the screen
-#define HDDR_SIZE  25
-
-
-
+// Screen.h
 
 // ALL Touch panels and wiring is DIFFERENT.  The touch screen needs to be calibrated
 // See the README files for how to run the calibration routine and
@@ -34,55 +24,44 @@ byte THIS_SCREEN_NUM = 0;
 #define MAGENTA 0xF81FU
 #define YELLOW  0xFFE0U
 #define WHITE   0xFFFFU
-//#define YELLOW  0xE0U
-//#define WHITE   0xFFU
-//const uint16_t YELLOW = 0xFFE0U;
-//const uint16_t WHITE = 0xFFFFU;
-
-
-/*#if defined(ESP32)
-  #define YELLOW ~YELLOW
-  #define WHITE ~WHITE
-#endif*/
 
 // A structure to store the screen lines.
 struct DisplayStruct
 {
   bool inuse=false;
-  byte row=0;
+  bool changed=false;
+  byte displayRow=0;
   char text[MAX_LINE_LENGTH]=" ";
 } DisplayLines[MAX_SCREENS][MAX_ROWS];
 
 // variables to indicate what needs doing to display the screen
-bool ScreenChanged[MAX_SCREENS] = {false,false};
+bool ScreenChanged[MAX_SCREENS];
 //bool ScreenDrawn=false
 bool PrintInProgress=false;
 byte NextRowToPrint=0;
 byte NextScreenLine=0;
-long timestamp=0;
-long screencount=0;
-bool StartupPhase = true;
 
-//Commands for serial input
-// #define COMMAND_BUFFER_SIZE 100
-// bool inCommand = false;
-// bool inDisplayLine = false;
-// char buffer[COMMAND_BUFFER_SIZE] = {'\0'};
-// int bufferLength=0;
 
-void TFT_Startup();
 
+
+// Set this following string to the header you require.  This is displayed at the top of the screen
+#define HDDR_SIZE  25
+
+
+// Functions appearing in the code
+namespace SCREEN {
+
+void TFT_Startup(byte screen);
 void showmsgXY(int x, int y, int sz, const char *msg);
-
-void TFT_DrawHeader();
+void TFT_DrawHeader(byte screen);
 void testprint(byte lines);
-void parseData(char * message);
-void StartScreenPrint();
+void StartScreenPrint(byte screen);
 //void PrintNextLine();
 void PrintSingleLine(byte screenNo, byte screenRow);
-void PrintALine();
-void DisplayScreen();
-void processSerialInput();
-
+void PrintALine(byte screen);
+void DisplayScreen(byte screen);
+void SetDisplayLine(byte screenId, byte screenRow, char * text);
+void displayAllRows();
+}
 
 #endif
